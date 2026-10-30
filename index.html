@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bill Splitter</title>
+    <meta name="description" content="A precision bill splitting web application with exact penny balancing, instant breakdown, validation, and localStorage persistence." />
+    <meta property="og:title" content="Bill Splitter" />
+    <meta property="og:description" content="A precision bill splitting web application with exact penny balancing, instant breakdown, validation, and localStorage persistence." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="./style.css" />
+    <script defer src="./script.js"></script>
+  </head>
+  <body>
+    <!-- Top Scrolling Marquee Banner -->
+    <div class="marquee-container" aria-hidden="true">
+      <div class="marquee-track">
+        <span class="marquee-text">BILL SPLITTER · EXACT PENNY BALANCING · LIVE CALCULATION · LOCAL TXT EXPORT · SAVED HISTORY · NO HIDDEN FEES · </span>
+        <span class="marquee-text">BILL SPLITTER · EXACT PENNY BALANCING · LIVE CALCULATION · LOCAL TXT EXPORT · SAVED HISTORY · NO HIDDEN FEES · </span>
+      </div>
+    </div>
+
+    <div class="app-container">
+      <!-- Top Navigation -->
+      <header class="app-header">
+        <div class="nav-pill-container">
+          <span class="nav-tag">[LEDGER]</span>
+          <span class="nav-divider">/</span>
+          <span class="nav-title">BILL SPLITTER</span>
+        </div>
+
+        <div class="header-actions">
+          <!-- Real-Time Status Indicator -->
+          <div class="live-indicator" title="Calculates automatically as you type">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span>LIVE CALCULATION</span>
+          </div>
+
+          <div class="currency-select-wrapper">
+            <label for="currency-select" class="currency-label">CURRENCY:</label>
+            <select id="currency-select" class="currency-dropdown" aria-label="Select Currency">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="JPY">JPY (¥)</option>
+              <option value="CAD">CAD (C$)</option>
+              <option value="AUD">AUD (A$)</option>
+              <option value="CHF">CHF</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <!-- Hero Header Section -->
+      <section class="hero-section">
+        <h1 class="hero-title">SPLIT THE BILL.</h1>
+        <div class="hero-subtitle">EQUAL SHARES BALANCED DOWN TO THE EXACT CENT</div>
+      </section>
+
+      <!-- Skewed Section Accent -->
+      <div class="skewed-accent-strip" aria-hidden="true">
+        <div class="skewed-inner">
+          <span>BALANCED SHARES WITH REMAINDER ALLOCATION</span>
+          <span class="skewed-badge">PENNY BALANCED</span>
+          <span>AUTO-SAVED TO LOCAL STORAGE</span>
+        </div>
+      </div>
+
+      <!-- Alert / Validation Box -->
+      <div id="alert-box" class="alert-box" role="alert" aria-live="assertive" aria-hidden="true">
+        <svg class="alert-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span id="alert-message" class="alert-message"></span>
+      </div>
+
+      <!-- Main Layout -->
+      <main class="main-layout">
+        <!-- Input Form Section -->
+        <section class="card-panel">
+          <div class="panel-header">
+            <span class="panel-kicker">STEP 01 // INPUTS</span>
+            <h2 class="panel-title">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="0" />
+                <path d="M7 15h0M2 9.5h20" />
+              </svg>
+              SPLIT DETAILS
+            </h2>
+            <p class="panel-desc">Enter your bill amount and number of people to calculate shares.</p>
+          </div>
+
+          <form id="split-form" class="split-form" novalidate>
+            <!-- Occasion -->
+            <div class="form-group">
+              <label for="occasion" class="form-label">
+                OCCASION
+                <span class="label-hint">OPTIONAL</span>
+              </label>
+              <input
+                type="text"
+                id="occasion"
+                name="occasion"
+                class="text-input"
+                placeholder="e.g. Dinner, Road Trip, Groceries"
+                autocomplete="off"
+                maxlength="60"
+              />
+            </div>
+
+            <!-- Bill Amount -->
+            <div class="form-group">
+              <label for="bill-amount" class="form-label">
+                TOTAL BILL
+                <span class="label-hint">REQUIRED</span>
+              </label>
+              <div class="input-container">
+                <span id="currency-prefix" class="input-prefix" aria-hidden="true">$</span>
+                <input
+                  type="number"
+                  id="bill-amount"
+                  name="billAmount"
+                  class="text-input input-has-prefix tabular-nums"
+                  step="0.01"
+                  min="0.01"
+                  max="999999999"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Tip Percentage -->
+            <div class="form-group">
+              <label class="form-label">
+                ADD TIP
+                <span class="label-hint">OPTIONAL</span>
+              </label>
+              <div class="tip-selector" role="group" aria-label="Tip percentage options">
+                <button type="button" class="tip-btn active" data-tip="0">0%</button>
+                <button type="button" class="tip-btn" data-tip="10">10%</button>
+                <button type="button" class="tip-btn" data-tip="15">15%</button>
+                <button type="button" class="tip-btn" data-tip="20">20%</button>
+              </div>
+            </div>
+
+            <!-- Number of People -->
+            <div class="form-group">
+              <label for="num-people" class="form-label">
+                NUMBER OF PEOPLE
+                <span class="label-hint">INTEGER &ge; 1</span>
+              </label>
+              <div class="stepper-container">
+                <button
+                  type="button"
+                  id="btn-decrease-people"
+                  class="stepper-btn"
+                  aria-label="Decrease number of people"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </button>
+                <input
+                  type="number"
+                  id="num-people"
+                  name="numPeople"
+                  class="text-input tabular-nums"
+                  step="1"
+                  min="1"
+                  max="500"
+                  placeholder="4"
+                  value="4"
+                  required
+                />
+                <button
+                  type="button"
+                  id="btn-increase-people"
+                  class="stepper-btn"
+                  aria-label="Increase number of people"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+              <button type="submit" id="btn-calculate" class="btn-primary">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="2" width="16" height="20" rx="0" />
+                  <line x1="8" y1="6" x2="16" y2="6" />
+                  <line x1="16" y1="14" x2="16" y2="18" />
+                  <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01" />
+                </svg>
+                CALCULATE SPLIT
+              </button>
+              <button type="button" id="btn-reset" class="btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                CLEAR / RESET
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Results Breakdown Section -->
+        <section class="card-panel results-container">
+          <!-- Empty State (Shown before calculation) -->
+          <div id="empty-state" class="empty-state">
+            <div class="empty-icon">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <h3 class="empty-title">NO CALCULATION YET</h3>
+            <p class="empty-desc">Enter your bill amount and number of people on the left to see the split.</p>
+          </div>
+
+          <!-- Active Calculation State -->
+          <div id="result-content" class="result-content" aria-live="polite">
+            <!-- Summary Banner -->
+            <div class="summary-banner">
+              <div id="summary-occasion" class="summary-occasion">SPLIT SUMMARY</div>
+              <div class="summary-main-split">
+                <span class="summary-split-label">PER PERSON SHARE:</span>
+                <span id="summary-split-amount" class="summary-split-amount">$0.00 <span>/ PERSON</span></span>
+              </div>
+
+              <!-- Key Metrics -->
+              <div class="summary-grid">
+                <div class="metric-item">
+                  <span class="metric-label">TOTAL BILL</span>
+                  <span id="metric-total-bill" class="metric-value">$0.00</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">NUMBER OF PEOPLE</span>
+                  <span id="metric-people-count" class="metric-value">0</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">BASE SHARE</span>
+                  <span id="metric-base-share" class="metric-value">$0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Exact Penny Balancing Proof Badge -->
+            <div class="penny-balance-badge">
+              <svg class="balance-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+              <div class="balance-content">
+                <div class="balance-title">EXACT PENNY BALANCING</div>
+                <p id="penny-balance-text" class="balance-text">All individual shares add up exactly to the total bill.</p>
+              </div>
+            </div>
+
+            <!-- Individual Breakdown List -->
+            <div>
+              <div class="breakdown-header">
+                <h3 class="breakdown-title">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  INDIVIDUAL SHARES
+                </h3>
+
+                <div class="breakdown-actions">
+                  <!-- Save to History -->
+                  <button type="button" id="btn-save-history" class="action-btn-pill btn-accent" title="Save this calculation to history">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                      <polyline points="17 21 17 13 7 13 7 21" />
+                      <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    SAVE TO HISTORY
+                  </button>
+
+                  <!-- Export as plain text file to device -->
+                  <button type="button" id="btn-export-txt" class="action-btn-pill" title="Save summary as a plain text (.txt) file to your device">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    EXPORT .TXT
+                  </button>
+
+                  <!-- Copy Summary to Clipboard -->
+                  <button type="button" id="btn-copy-summary" class="action-btn-pill" title="Copy split summary text to clipboard">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="0" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    COPY SUMMARY
+                  </button>
+                </div>
+              </div>
+
+              <div id="breakdown-list" class="breakdown-list">
+                <!-- Dynamically populated shares via script.js -->
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- History Section -->
+      <section class="card-panel history-panel" id="history-section">
+        <div class="history-header">
+          <div class="history-title-group">
+            <h2 class="panel-title">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              SPLIT HISTORY
+            </h2>
+            <span id="history-count-badge" class="history-badge">0 SAVED</span>
+          </div>
+
+          <button type="button" id="btn-clear-history" class="action-btn-pill" title="Clear all saved splits">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            CLEAR ALL
+          </button>
+        </div>
+
+        <!-- History cards grid -->
+        <div id="history-list" class="history-list"></div>
+
+        <!-- History empty state -->
+        <div id="history-empty" class="history-empty-state">
+          <p class="history-empty-title">NO SAVED SPLITS</p>
+          <p class="history-empty-desc">Completed calculations can be saved here for future reference.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Floating Feedback Toast -->
+    <div id="toast" class="toast-msg" role="status" aria-live="polite">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff4d00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+      <span class="toast-text"></span>
+    </div>
+  </body>
+</html>
